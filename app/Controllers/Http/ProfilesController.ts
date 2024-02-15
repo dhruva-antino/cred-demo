@@ -1,30 +1,18 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import Database from '@ioc:Adonis/Lucid/Database'
 import UserProfile from 'App/Models/UserProfile'
 import UpdateProfileValidator from 'App/validators/UpdateProfileValidator'
 import Utils from 'App/utils/utils'
 import { Gender } from 'Contracts/Enums'
-import {DateTime} from 'luxon'
+import User from 'App/Models/User'
 
 export default class ProfilesController {
-  public async createProfile({}: HttpContextContract) {
-    return 200
-  }
-
-  public async getProfile({ auth, response, request }: HttpContextContract) {
+  public async getProfile({ auth, response }: HttpContextContract) {
     try {
-    const email = auth.user?.email
-    const user = await Database.from('user as u')
-      .innerJoin('user_profiles as p', 'u.id', 'p.user_id')
-      .where({ email })
-      .select(['email', 'mobile', 'gender', 'dob'])
-      .first()
-
-      console.log('user - ',user)
+      const user = await User.query().where('id', auth.user?.id as number).preload('profile').first();
     if(!user){
       return response.json({ error: 'User not exist' })
     }
-    return response.json({ message: 'User profile', data: user })
+    return response.json({ message: 'User profile', data:user })
     } catch (error) {
       response.json({error:error.message})
     }
@@ -33,12 +21,11 @@ export default class ProfilesController {
   public async updateProfile({ request, response, auth }: HttpContextContract) {
     try {
       const body = request.body()
-      const authId = auth.user?.id as string
+      const authId = auth.user?.id
       const {name,dob,gender} = await request.validate( UpdateProfileValidator )
+      const profile = await UserProfile.findBy('userId', authId);
 
-      const profile = await UserProfile.query().where('user_id', authId).firstOrFail()
-
-      if(!Object.keys(profile).length){
+      if(!profile){
         return response.json({ error: 'User not exist' })
      }
     let mobile = body?.mobile || profile?.mobile
@@ -56,21 +43,14 @@ export default class ProfilesController {
       return response.json({error:error.messages})
     }
   }
-  public async deleteProfile({ request, response,auth }: HttpContextContract) {
+  public async deleteProfile({response,auth }: HttpContextContract) {
     try {
-      const { mobile } = request.qs()
-      const email = auth.user?.email
-
-      const result = await Database.from('user as u')
-      .innerJoin('user_profiles as p', 'u.id', 'p.user_id')
-      .where({ email }).andWhere({mobile}).first()
+      const result = await User.query().where('id', auth.user?.id as number).preload('profile').first();
 
       if(!result){
       return response.json({error:"User not exist"})
-      }else if(result.mobile){
-        await Database.from('user as u')
-      .innerJoin('user_profiles as p', 'u.id', 'p.user_id')
-      .where({ mobile }).delete()
+      }else if(result.profile?.mobile){
+        await result.delete()
       }
 
     return response.json({ message: 'Profile Deleted' })

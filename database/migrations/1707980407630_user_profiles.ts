@@ -5,10 +5,10 @@ export default class extends BaseSchema {
 
   public async up () {
     this.schema.createTable(this.tableName, (table) => {
-      table.uuid('id').primary()
-      table.uuid('user_id').unsigned().references('id').inTable('user').onDelete('CASCADE')
+      table.bigIncrements('id').primary()
+      table.bigint('user_id').unsigned().references('id').inTable('user').onDelete('CASCADE')
       table.string('name').nullable()
-      table.bigint('mobile').notNullable().unique()
+      table.string('mobile').notNullable().unique()
       table.enum('gender', ['male', 'female']).nullable()
       table.dateTime('dob').nullable()
       table.timestamp('created_at', { useTz: true })

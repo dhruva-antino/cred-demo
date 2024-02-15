@@ -1,30 +1,16 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import Database from '@ioc:Adonis/Lucid/Database'
 import User from 'App/Models/User'
-import { v4 as uuidv4 } from 'uuid';
-import Utils from 'App/utils/utils'
 import UserProfile from 'App/Models/UserProfile'
 import RegisterValidator from 'App/validators/RegisterValidator';
 
 export default class AuthController {
-  public async register({ request, auth,response }: HttpContextContract) {
+  public async register({ request,response }: HttpContextContract) {
     try {
-    const {email,password,mobile} = request.body()
-    const userId = uuidv4()
-    const profileId = uuidv4()
-    const userData = await request.validate( RegisterValidator )
+    const { email, password, mobile } = await request.validate(RegisterValidator)
 
-    const checkMobile = Utils.handleMobileNumber(mobile)
-    const checkUser = await Database.from('user as u')
-    .innerJoin('user_profiles as p', 'p.user_id', 'u.id')
-    .where({ email: userData.email }).orWhere({mobile})
-    if (checkUser.length > 0) return { code: 400, message: 'User already exist' }
+    const user = await User.create({email,password})
 
-    const user = await User.create({id:userId, email,password})
-
-    await UserProfile.create({id:profileId, mobile,userId:user.id})
-
-    await auth.login(user)
+    await UserProfile.create({mobile,userId:user.id})
 
     return response.json({
       message: 'User Created',

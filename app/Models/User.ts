@@ -7,7 +7,7 @@ export default class User extends BaseModel {
   public static table  = 'user'
 
   @column({ isPrimary: true })
-  public id: string
+  public id: number
 
   @hasOne(() => UserProfile)
   public profile: HasOne<typeof UserProfile>
