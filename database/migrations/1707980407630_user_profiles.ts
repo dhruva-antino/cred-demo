@@ -9,7 +9,7 @@ export default class extends BaseSchema {
       table.bigint('user_id').unsigned().references('id').inTable('user').onDelete('CASCADE')
       table.string('name').nullable()
       table.string('mobile').notNullable().unique()
-      table.enum('gender', ['male', 'female']).nullable()
+      table.enum('gender', Object.values(Gender)).nullable()
       table.dateTime('dob').nullable()
       table.timestamp('created_at', { useTz: true })
       table.timestamp('updated_at', { useTz: true })

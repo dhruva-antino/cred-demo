@@ -10,8 +10,6 @@ export default class RegisterValidator {
       rules.unique({ table: 'user', column: 'email', caseInsensitive: true }),
     ]),
     password: schema.string({ trim: true }, [
-      rules.maxLength(16),
-      rules.minLength(8),
       rules.regex(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,16}$/),
     ]),
     mobile: schema.string({}, [
