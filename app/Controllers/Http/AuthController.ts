@@ -10,6 +10,8 @@ export default class AuthController {
 
     const user = await User.create({email,password})
 
+    
+
     await UserProfile.create({mobile,userId:user.id})
 
     return response.json({
